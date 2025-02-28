@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chemistry Quiz</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --accent-color: #e74c3c;
+            --background-color: #f9f9f9;
+            --text-color: #333;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .topic-selection {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        select {
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: var(--border-radius);
+            border: 1px solid #ddd;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .quiz-container {
+            display: none;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .progress-tracker {
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+        }
+
+        .question-container {
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .question {
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            padding: 12px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option:hover {
+            background-color: #f1f1f1;
+        }
+
+        .option.selected {
+            background-color: #d4e6f1;
+            border-color: var(--primary-color);
+        }
+
+        .option.correct {
+            background-color: #d4edda;
+            border-color: var(--secondary-color);
+        }
+
+        .option.incorrect {
+            background-color: #f8d7da;
+            border-color: var(--accent-color);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .nav-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            background-color: var(--secondary-color);
+        }
+
+        .results-container {
+            display: none;
+            text-align: center;
+        }
+
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .summary {
+            margin-bottom: 20px;
+        }
+
+        .restart-btn {
+            background-color: var(--secondary-color);
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            .quiz-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            .navigation {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Chemistry Quiz</h1>
+            <p>Test your chemistry knowledge across various topics</p>
+        </header>
+
+        <div class="topic-selection" id="topicSelection">
+            <h2>Select a Topic</h2>
+            <select id="topicDropdown">
+                <option value="" disabled selected>Choose a topic</option>
+                <option value="organic">Organic Chemistry</option>
+                <option value="inorganic">Inorganic Chemistry</option>
+                <option value="physical">Physical Chemistry</option>
+                <option value="biochemistry">Biochemistry</option>
+                <option value="analytical">Analytical Chemistry</option>
+                <option value="nuclear">Nuclear Chemistry</option>
+                <option value="environmental">Environmental Chemistry</option>
+                <option value="polymer">Polymer Chemistry</option>
+                <option value="medicinal">Medicinal Chemistry</option>
+            </select>
+            <button id="startQuizBtn">Start Quiz</button>
+        </div>
+
+        <div class="quiz-container" id="quizContainer">
+            <div class="quiz-header">
+                <h2 id="quizTopic">Topic: </h2>
+                <div class="progress-tracker">
+                    <div id="progressText">Question: 1/10</div>
+                    <div id="scoreText">Score: 0/0</div>
+                </div>
+            </div>
+
+            <div class="question-container">
+                <div class="question" id="question">Question text appears here</div>
+                <div class="options" id="options">
+                    <!-- Options will be inserted here via JavaScript -->
+                </div>
+            </div>
+
+            <div class="navigation">
+                <button class="nav-btn" id="prevBtn">Previous</button>
+                <button class="nav-btn submit-btn" id="nextBtn">Next</button>
+            </div>
+        </div>
+
+        <div class="results-container" id="resultsContainer">
+            <h2>Quiz Results</h2>
+            <div class="score" id="finalScore">Your Score: 0/10</div>
+            <div class="summary" id="resultSummary">
+                <!-- Summary will be inserted here -->
+            </div>
+            <button class="restart-btn" id="restartBtn">Try Another Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        // Question banks for different topics (empty arrays to be populated later)
+        const questionBanks = {
+            organic: [
+                {
+                    question: "What is the IUPAC name for CH3-CH2-CH2-CH3?",
+                    options: ["Butane", "Butene", "Propane", "Pentane"],
+                    correctAnswer: 0
+                },
+                {
+                    question: "Which functional group is characterized by the C=O group?",
+                    options: ["Alcohol", "Ether", "Carbonyl", "Amine"],
+                    correctAnswer: 2
+                },
+                {
+                    question: "What is the hybridization of carbon in ethene (C2H4)?",
+                    options: ["sp", "sp2", "sp3", "sp3d"],
+                    correctAnswer: 1
+                }
+                // Add more questions later
+            ],
+            inorganic: [
+                {
+                    question: "Which element has the highest electronegativity?",
+                    options: ["Oxygen", "Nitrogen", "Fluorine", "Chlorine"],
+                    correctAnswer: 2
+                },
+                {
+                    question: "What is the geometry of SF6?",
+                    options: ["Tetrahedral", "Octahedral", "Trigonal bipyramidal", "Square planar"],
+                    correctAnswer: 1
+                }
+                // Add more questions later
+            ],
+            physical: [
+                {
+                    question: "What does the First Law of Thermodynamics state?",
+                    options: [
+                        "Energy cannot be created or destroyed",
+                        "Entropy of the universe always increases",
+                        "Equal volumes of gases contain equal number of molecules",
+                        "Matter cannot be created or destroyed"
+                    ],
+                    correctAnswer: 0
+                },
+                {
+                    question: "Which equation relates the Gibbs free energy change to enthalpy and entropy?",
+                    options: ["ΔG = ΔH + TΔS", "ΔG = ΔH - TΔS", "ΔG = ΔH × TΔS", "ΔG = ΔH / TΔS"],
+                    correctAnswer: 1
+                }
+                // Add more questions later
+            ],
+            biochemistry: [
+                {
+                    question: "Which of the following is NOT an amino acid?",
+                    options: ["Alanine", "Glucose", "Lysine", "Tyrosine"],
+                    correctAnswer: 1
+                },
+                {
+                    question: "What is the primary function of enzymes in biochemical reactions?",
+                    options: [
+                        "To provide energy",
+                        "To act as catalysts",
+                        "To provide structural support",
+                        "To store genetic information"
+                    ],
+                    correctAnswer: 1
+                }
+                // Add more questions later
+            ],
+            analytical: [
+                {
+                    question: "Which technique separates compounds based on their polarity?",
+                    options: [
+                        "Mass Spectrometry",
+                        "Chromatography",
+                        "Nuclear Magnetic Resonance",
+                        "Infrared Spectroscopy"
+                    ],
+                    correctAnswer: 1
+                },
+                {
+                    question: "What does HPLC stand for?",
+                    options: [
+                        "High Performance Light Chromatography",
+                        "High Pressure Liquid Chromatography",
+                        "High Performance Liquid Chromatography",
+                        "Highly Precise Liquid Calculation"
+                    ],
+                    correctAnswer: 2
+                }
+                // Add more questions later
+            ],
+            nuclear: [
+                {
+                    question: "What particle is emitted during beta decay?",
+                    options: ["Proton", "Neutron", "Electron", "Alpha particle"],
+                    correctAnswer: 2
+                },
+                {
+                    question: "What is the half-life of a radioactive isotope?",
+                    options: [
+                        "The time it takes for half of the sample to decay",
+                        "The time it takes for the entire sample to decay",
+                        "The time it takes for a quarter of the sample to decay",
+                        "The time it takes for the sample to become stable"
+                    ],
+                    correctAnswer: 0
+                }
+                // Add more questions later
+            ],
+            environmental: [
+                {
+                    question: "Which gas is the primary contributor to the greenhouse effect?",
+                    options: ["Oxygen", "Nitrogen", "Carbon dioxide", "Hydrogen"],
+                    correctAnswer: 2
+                },
+                {
+                    question: "What is the main cause of ocean acidification?",
+                    options: [
+                        "Nitrogen pollution",
+                        "Phosphate runoff",
+                        "Absorption of CO2 from the atmosphere",
+                        "Oil spills"
+                    ],
+                    correctAnswer: 2
+                }
+                // Add more questions later
+            ],
+            polymer: [
+                {
+                    question: "Which of the following is NOT a synthetic polymer?",
+                    options: ["Polyethylene", "Polypropylene", "Cellulose", "Nylon"],
+                    correctAnswer: 2
+                },
+                {
+                    question: "What type of polymerization involves the reaction of monomers with different functional groups?",
+                    options: [
+                        "Addition polymerization",
+                        "Condensation polymerization",
+                        "Free radical polymerization",
+                        "Ionic polymerization"
+                    ],
+                    correctAnswer: 1
+                }
+                // Add more questions later
+            ],
+            medicinal: [
+                {
+                    question: "What is the active ingredient in aspirin?",
+                    options: [
+                        "Acetylsalicylic acid",
+                        "Paracetamol",
+                        "Ibuprofen",
+                        "Morphine"
+                    ],
+                    correctAnswer: 0
+                },
+                {
+                    question: "Which of the following is an example of a beta-blocker?",
+                    options: ["Atorvastatin", "Propranolol", "Omeprazole", "Amoxicillin"],
+                    correctAnswer: 1
+                }
+                // Add more questions later
+            ]
+        };
+
+        // Global variables
+        let currentTopic = '';
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let score = 0;
+
+        // DOM elements
+        const topicSelection = document.getElementById('topicSelection');
+        const quizContainer = document.getElementById('quizContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const topicDropdown = document.getElementById('topicDropdown');
+        const startQuizBtn = document.getElementById('startQuizBtn');
+        const quizTopic = document.getElementById('quizTopic');
+        const questionElement = document.getElementById('question');
+        const optionsElement = document.getElementById('options');
+        const progressText = document.getElementById('progressText');
+        const scoreText = document.getElementById('scoreText');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const finalScore = document.getElementById('finalScore');
+        const resultSummary = document.getElementById('resultSummary');
+        const restartBtn = document.getElementById('restartBtn');
+
+        // Start quiz when start button is clicked
+        startQuizBtn.addEventListener('click', startQuiz);
+
+        // Navigation button event listeners
+        prevBtn.addEventListener('click', showPreviousQuestion);
+        nextBtn.addEventListener('click', handleNextButton);
+        restartBtn.addEventListener('click', resetQuiz);
+
+        // Function to start the quiz
+        function startQuiz() {
+            currentTopic = topicDropdown.value;
+            
+            if (!currentTopic) {
+                alert('Please select a topic!');
+                return;
+            }
+
+            // Get questions for the selected topic
+            const allQuestions = questionBanks[currentTopic];
+            
+            if (!allQuestions || allQuestions.length === 0) {
+                alert('No questions available for this topic yet.');
+                return;
+            }
+
+            // Select 10 random questions or all available if less than 10
+            currentQuestions = getRandomQuestions(allQuestions, Math.min(10, allQuestions.length));
+            
+            // Reset quiz state
+            currentQuestionIndex = 0;
+            userAnswers = Array(currentQuestions.length).fill(null);
+            score = 0;
+            
+            // Update UI
+            topicSelection.style.display = 'none';
+            quizContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            
+            // Set topic title with proper formatting
+            const topicName = topicDropdown.options[topicDropdown.selectedIndex].text;
+            quizTopic.textContent = `Topic: ${topicName}`;
+            
+            // Show first question
+            showQuestion(0);
+            updateNavButtons();
+        }
+
+        // Function to get random questions from a question bank
+        function getRandomQuestions(questions, count) {
+            const shuffled = [...questions].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        // Function to display a question
+        function showQuestion(index) {
+            const question = currentQuestions[index];
+            questionElement.textContent = `${index + 1}. ${question.question}`;
+            
+            // Clear options container
+            optionsElement.innerHTML = '';
+            
+            // Create option elements
+            question.options.forEach((option, i) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                
+                // Add selected class if this option was previously selected
+                if (userAnswers[index] === i) {
+                    optionElement.classList.add('selected');
+                }
+                
+                // Add click event listener
+                optionElement.addEventListener('click', () => selectOption(index, i));
+                
+                optionsElement.appendChild(optionElement);
+            });
+            
+            // Update progress tracker
+            progressText.textContent = `Question: ${index + 1}/${currentQuestions.length}`;
+            scoreText.textContent = `Score: ${score}/${index}`;
+            
+            // Update navigation buttons
+            updateNavButtons();
+        }
+
+        // Function to handle option selection
+        function selectOption(questionIndex, optionIndex) {
+            userAnswers[questionIndex] = optionIndex;
+            
+            // Update UI to show selected option
+            const options = optionsElement.querySelectorAll('.option');
+            options.forEach((option, i) => {
+                if (i === optionIndex) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+        }
+
+        // Function to show previous question
+        function showPreviousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                showQuestion(currentQuestionIndex);
+            }
+        }
+
+        // Function to handle the next button (changes to "Submit" on last question)
+        function handleNextButton() {
+            if (currentQuestionIndex === currentQuestions.length - 1) {
+                // This is the last question, submit the quiz
+                submitQuiz();
+            } else {
+                // Move to next question
+                currentQuestionIndex++;
+                showQuestion(currentQuestionIndex);
+            }
+        }
+
+        // Update navigation buttons based on current question index
+        function updateNavButtons() {
+            prevBtn.disabled = currentQuestionIndex === 0;
+            
+            if (currentQuestionIndex === currentQuestions.length - 1) {
+                nextBtn.textContent = 'Submit Quiz';
+            } else {
+                nextBtn.textContent = 'Next';
+            }
+        }
+
+        // Function to submit the quiz and show results
+        function submitQuiz() {
+            // Calculate score
+            score = 0;
+            userAnswers.forEach((answer, index) => {
+                if (answer === currentQuestions[index].correctAnswer) {
+                    score++;
+                }
+            });
+            
+            // Update results container
+            finalScore.textContent = `Your Score: ${score}/${currentQuestions.length}`;
+            
+            // Generate result summary
+            let summaryHTML = '<h3>Question Summary:</h3><ul>';
+            
+            currentQuestions.forEach((question, index) => {
+                const userAnswer = userAnswers[index] !== null ? question.options[userAnswers[index]] : 'Not answered';
+                const correctAnswer = question.options[question.correctAnswer];
+                const isCorrect = userAnswers[index] === question.correctAnswer;
+                
+                summaryHTML += `
+                    <li style="margin-bottom: 10px; padding: 10px; background: ${isCorrect ? '#d4edda' : '#f8d7da'}; border-radius: 5px;">
+                        <p><strong>Q${index + 1}:</strong> ${question.question}</p>
+                        <p>Your answer: ${userAnswer}</p>
+                        <p>Correct answer: ${correctAnswer}</p>
+                    </li>
+                `;
+            });
+            
+            summaryHTML += '</ul>';
+            resultSummary.innerHTML = summaryHTML;
+            
+            // Show results container
+            quizContainer.style.display = 'none';
+            resultsContainer.style.display = 'block';
+        }
+
+        // Function to reset the quiz and return to topic selection
+        function resetQuiz() {
+            topicSelection.style.display = 'block';
+            quizContainer.style.display = 'none';
+            resultsContainer.style.display = 'none';
+            topicDropdown.value = '';
+        }
+    </script>
+</body>
+</html>
